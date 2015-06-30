@@ -1,0 +1,639 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <title>GoTomatoGo</title>
+    <link href="/stylesheets/screen.css" media="all" rel="stylesheet" type="text/css"/>
+    <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
+	<style type="text/css">.control {	font-family: Georgia, Times New Roman, Times, serif;}</style>
+  </head>
+  <body align="center">
+    <h1 class="control">GoTomatoGo</h1>
+	<h4 class="control">Press Up, Down, Left, Right key to move</h4>
+	<h4 class="control">A to shoot left, W to shoot up, D to shoot right and S to shoot down</h4>
+    <script type='text/javascript'>
+      //<![CDATA[
+        var CANVAS_WIDTH = 960;
+        var CANVAS_HEIGHT = 640;
+        var FPS = 30;
+        
+        var player = {
+          color: "#00A",
+          x: 450,
+          y: 300,
+          width: 140,
+          height: 145,
+          draw: function() {
+            canvas.fillStyle = this.color;
+            canvas.fillRect(this.x, this.y, this.width, this.height);
+          }
+        };
+        
+        var playerBullets = [];
+        
+        function BulletW(I) {
+          I.active = true;
+        
+          I.xVelocity = 0;
+          I.yVelocity = -I.speed;
+          I.width = 3;
+          I.height = 3;
+          I.color = "#ff0000";
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.draw = function() {
+            canvas.fillStyle = this.color;
+            canvas.fillRect(this.x, this.y, this.width, this.height);
+          };
+          
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        }
+        
+		function BulletA(I) {
+          I.active = true;
+        
+          I.xVelocity = -I.speed;
+          I.yVelocity = 0;
+          I.width = 3;
+          I.height = 3;
+          I.color = "#ff0000";
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.draw = function() {
+            canvas.fillStyle = this.color;
+            canvas.fillRect(this.x, this.y, this.width, this.height);
+          };
+          
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        }
+		
+		function BulletD(I) {
+          I.active = true;
+        
+          I.xVelocity = I.speed;
+          I.yVelocity = 0;
+          I.width = 3;
+          I.height = 3;
+          I.color = "#ff0000";
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.draw = function() {
+            canvas.fillStyle = this.color;
+            canvas.fillRect(this.x, this.y, this.width, this.height);
+          };
+          
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        }
+		
+		function BulletS(I) {
+          I.active = true;
+        
+          I.xVelocity = 0;
+          I.yVelocity = I.speed;
+          I.width = 3;
+          I.height = 3;
+          I.color = "#ff0000";
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.draw = function() {
+            canvas.fillStyle = this.color;
+            canvas.fillRect(this.x, this.y, this.width, this.height);
+          };
+          
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        }
+		
+        enemies = [];	// from up
+        enemies2 = [];	// from left
+		enemies3 = [];	// from right
+		enemies4 = [];	// from down
+        
+        function Enemy(I) {
+          I = I || {};
+        
+          I.active = true;
+          I.age = Math.floor(Math.random() * 128);
+          
+          I.color = "#A2B";
+        
+          I.x = CANVAS_WIDTH / 4 + Math.random() * CANVAS_WIDTH / 2;
+          I.y = 0;
+          I.xVelocity = 0
+          I.yVelocity = 2;
+        
+          I.width = 72;
+          I.height = 72;
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.sprite = Sprite("cabbage2");
+        
+          I.draw = function() {
+            this.sprite.draw(canvas, this.x, this.y);
+          };
+        
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.xVelocity = (player.x + 60 - I.x)/(Math.abs(player.x + 60 - I.x));
+        
+            I.age++;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            Sound.play("explosion");
+        
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        };
+		
+        function Enemy2(I) {
+          I = I || {};
+        
+          I.active = true;
+          I.age = Math.floor(Math.random() * 128);
+          
+          I.color = "#A2B";
+        
+          I.x = 0;
+          I.y = CANVAS_HEIGHT / 4 + Math.random() * CANVAS_HEIGHT / 2;
+          I.xVelocity = 2
+          I.yVelocity = 0;
+        
+          I.width = 72;
+          I.height = 72;
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.sprite = Sprite("cabbage2");
+        
+          I.draw = function() {
+            this.sprite.draw(canvas, this.x, this.y);
+          };
+        
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.yVelocity = (player.y + 60 - I.y)/(Math.abs(player.y + 60 - I.y));
+        
+            I.age++;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            Sound.play("explosion");
+        
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        };
+		
+		function Enemy3(I) {
+          I = I || {};
+        
+          I.active = true;
+          I.age = Math.floor(Math.random() * 128);
+          
+          I.color = "#A2B";
+        
+          I.x = 960;
+          I.y = CANVAS_HEIGHT / 4 + Math.random() * CANVAS_HEIGHT / 2;
+          I.xVelocity = -2
+          I.yVelocity = 0;
+        
+          I.width = 72;
+          I.height = 72;
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.sprite = Sprite("cabbage2");
+        
+          I.draw = function() {
+            this.sprite.draw(canvas, this.x, this.y);
+          };
+        
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.yVelocity = (player.y + 60 - I.y)/(Math.abs(player.y + 60 - I.y));
+        
+            I.age++;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            Sound.play("explosion");
+        
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        };
+		
+		function Enemy4(I) {
+          I = I || {};
+        
+          I.active = true;
+          I.age = Math.floor(Math.random() * 128);
+          
+          I.color = "#A2B";
+        
+          I.x = CANVAS_WIDTH / 4 + Math.random() * CANVAS_WIDTH / 2;
+          I.y = 640;
+          I.xVelocity = 0
+          I.yVelocity = -2;
+        
+          I.width = 72;
+          I.height = 72;
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.sprite = Sprite("cabbage2");
+        
+          I.draw = function() {
+            this.sprite.draw(canvas, this.x, this.y);
+          };
+        
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.xVelocity = (player.x + 60 - I.x)/(Math.abs(player.x + 60 - I.x));
+        
+            I.age++;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            Sound.play("explosion");
+        
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        };
+        
+        var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
+          "' height='" + CANVAS_HEIGHT + "'></canvas");
+        var canvas = canvasElement.get(0).getContext("2d");
+        canvasElement.appendTo('body');
+        
+        setInterval(function() {
+          update();
+          draw();
+        }, 1000/FPS);
+        
+        function update() {
+          if(keydown.w) {
+            player.shootW();
+          }
+		  if(keydown.a) {
+            player.shootA();
+          }
+		  if(keydown.d) {
+            player.shootD();
+          }
+		  if(keydown.s) {
+            player.shootS();
+          }
+        
+          if(keydown.left) {
+            player.x -= 5;
+          }
+        
+          if(keydown.right) {
+            player.x += 5;
+          }
+		  
+          if(keydown.up) {
+            player.y -= 5;
+          }
+		  
+          if(keydown.down) {
+            player.y += 5;
+          }
+		  
+          player.x = player.x.clamp(0, CANVAS_WIDTH - player.width);
+		  player.y = player.y.clamp(0, CANVAS_HEIGHT - player.height);
+          
+          playerBullets.forEach(function(bulletW) {
+            bulletW.update();
+          });
+		  playerBullets.forEach(function(bulletA) {
+            bulletA.update();
+          });
+		  playerBullets.forEach(function(bulletD) {
+            bulletD.update();
+          });
+		  playerBullets.forEach(function(bulletS) {
+            bulletS.update();
+          });
+        
+          playerBullets = playerBullets.filter(function(bulletW) {
+            return bulletW.active;
+          });
+		  playerBullets = playerBullets.filter(function(bulletA) {
+            return bulletA.active;
+          });
+		  playerBullets = playerBullets.filter(function(bulletD) {
+            return bulletD.active;
+          });
+		  playerBullets = playerBullets.filter(function(bulletS) {
+            return bulletS.active;
+          });
+          
+          enemies.forEach(function(enemy) {
+            enemy.update();
+          });
+          enemies2.forEach(function(enemy2) {
+            enemy2.update();
+          });
+		  
+          enemies = enemies.filter(function(enemy) {
+            return enemy.active;
+          });
+          enemies2 = enemies.filter(function(enemy2) {
+            return enemy2.active;
+          });
+		
+          handleCollisions();
+        
+          if(Math.random() < 0.03) {
+            enemies.push(Enemy());
+            enemies.push(Enemy2());
+			enemies.push(Enemy3());	
+			enemies.push(Enemy4());	
+          }
+        }
+        
+        player.shootW = function() {
+          Sound.play("shoot");
+        
+          var bulletPosition = this.midpoint();
+        
+          playerBullets.push(BulletW({
+            speed: 10,
+            x: bulletPosition.x,
+            y: bulletPosition.y
+          }));
+        };
+		player.shootA = function() {
+          Sound.play("shoot");
+        
+          var bulletPosition = this.midpoint();
+        
+          playerBullets.push(BulletA({
+            speed: 10,
+            x: bulletPosition.x,
+            y: bulletPosition.y
+          }));
+        };
+		player.shootD = function() {
+          Sound.play("shoot");
+        
+          var bulletPosition = this.midpoint();
+        
+          playerBullets.push(BulletD({
+            speed: 10,
+            x: bulletPosition.x,
+            y: bulletPosition.y
+          }));
+        };
+		player.shootS = function() {
+          Sound.play("shoot");
+        
+          var bulletPosition = this.midpoint();
+        
+          playerBullets.push(BulletS({
+            speed: 10,
+            x: bulletPosition.x,
+            y: bulletPosition.y
+          }));
+        };
+        
+        player.midpoint = function() {
+          return {
+            x: this.x + this.width/2,
+            y: this.y + this.height/2
+          };
+        };
+        
+        function draw() {
+          canvas.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+          player.draw();
+          
+          playerBullets.forEach(function(bulletW) {
+            bulletW.draw();
+          });
+		  playerBullets.forEach(function(bulletA) {
+            bulletA.draw();
+          });
+		  playerBullets.forEach(function(bulletD) {
+            bulletD.draw();
+          });
+		  playerBullets.forEach(function(bulletS) {
+            bulletS.draw();
+          });
+        
+          enemies.forEach(function(enemy) {
+            enemy.draw();
+          });
+		  enemies2.forEach(function(enemy2) {
+            enemy2.draw();
+          });
+        }
+        
+        function collides(a, b) {
+          return a.x < b.x + b.width &&
+            a.x + a.width > b.x &&
+            a.y < b.y + b.height &&
+            a.y + a.height > b.y;
+        }
+        
+        function handleCollisions() {
+          playerBullets.forEach(function(bulletW) {
+            enemies.forEach(function(enemy) {
+              if(collides(bulletW, enemy)) {
+                enemy.explode();
+                bulletW.active = false;
+              }
+            });
+          });
+		  playerBullets.forEach(function(bulletA) {
+            enemies.forEach(function(enemy) {
+              if(collides(bulletA, enemy)) {
+                enemy.explode();
+                bulletA.active = false;
+              }
+            });
+          });
+		  playerBullets.forEach(function(bulletD) {
+            enemies.forEach(function(enemy) {
+              if(collides(bulletD, enemy)) {
+                enemy.explode();
+                bulletD.active = false;
+              }
+            });
+          });
+		  playerBullets.forEach(function(bulletS) {
+            enemies.forEach(function(enemy) {
+              if(collides(bulletS, enemy)) {
+                enemy.explode();
+                bulletS.active = false;
+              }
+            });
+          });
+        
+          enemies.forEach(function(enemy) {
+            if(collides(enemy, player)) {
+              enemy.explode();
+              player.explode();
+            }
+          });
+		  
+		  playerBullets.forEach(function(bulletW) {
+            enemies.forEach(function(enemy2) {
+              if(collides(bulletW, enemy2)) {
+                enemy2.explode();
+                bulletW.active = false;
+              }
+            });
+          });
+		  playerBullets.forEach(function(bulletA) {
+            enemies.forEach(function(enemy2) {
+              if(collides(bulletA, enemy2)) {
+                enemy2.explode();
+                bulletA.active = false;
+              }
+            });
+          });
+		  playerBullets.forEach(function(bulletD) {
+            enemies.forEach(function(enemy2) {
+              if(collides(bulletD, enemy2)) {
+                enemy2.explode();
+                bulletD.active = false;
+              }
+            });
+          });
+		  playerBullets.forEach(function(bulletS) {
+            enemies.forEach(function(enemy2) {
+              if(collides(bulletS, enemy2)) {
+                enemy2.explode();
+                bulletS.active = false;
+              }
+            });
+          });
+        
+          enemies.forEach(function(enemy2) {
+            if(collides(enemy2, player)) {
+              enemy2.explode();
+              player.explode();
+            }
+          });
+        }
+        
+        player.explode = function() {
+          this.active = false;
+          // Extra Credit: Add an explosion graphic and then end the game
+        };
+        
+        player.sprite = Sprite("tomato2");
+        
+        player.draw = function() {
+          this.sprite.draw(canvas, this.x, this.y);
+        };
+		
+      //]]>
+    </script>
+  </body>
+</html>
